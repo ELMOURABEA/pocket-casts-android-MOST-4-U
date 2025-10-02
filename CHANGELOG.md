@@ -1,16 +1,59 @@
+7.100
+-----
+*   Bug Fixes
+    *   Fix restoring large Up Next queues
+        ([#4562](https://github.com/Automattic/pocket-casts-android/pull/4562))
+    *   Fix done button overlapping with navigation bars
+        ([#4553](https://github.com/Automattic/pocket-casts-android/pull/4553))
+    *   Fix shared list under the mini player
+        ([#4560](https://github.com/Automattic/pocket-casts-android/pull/4560))
+    *   Fix transcript button incorrectly disabled
+        ([#4555](https://github.com/Automattic/pocket-casts-android/pull/4555))
+
+7.99
+-----
+*   Updates
+    *   Improve episode rows swipe and multi-select animations.
+        ([#4500](https://github.com/Automattic/pocket-casts-android/pull/4500))
+    *   Improve user episode rows swipe and multi-select animations.
+        ([#4501](https://github.com/Automattic/pocket-casts-android/pull/4501))
+    *   Improve up next episode rows swipe and multi-select animations.
+        ([#4502](https://github.com/Automattic/pocket-casts-android/pull/4502))
+    *   Migrate from old Google login method to CredentialManager APIs
+        ([#4523](https://github.com/Automattic/pocket-casts-android/pull/4523))
+    *   Use CredentialManager on WearOS for Google login
+        ([#4528](https://github.com/Automattic/pocket-casts-android/pull/4528))
+    *   Enable saved passwords to be used for WearOS login
+        ([#4548](https://github.com/Automattic/pocket-casts-android/pull/4548))
+    *   Do not remove episodes from Up Next when downloaded files are deleted.
+        ([#4549](https://github.com/Automattic/pocket-casts-android/pull/4549))
+
+7.98
+-----
+*   Bug Fixes
+    *   Fix Download notifications no longer open app
+        ([#4449](https://github.com/Automattic/pocket-casts-android/pull/4449))
+    *   Don't show notification to create free account when the user is already signed in
+        ([#4468](https://github.com/Automattic/pocket-casts-android/pull/4468))
+
 7.97
 -----
 *   New Features
     *   Onboarding Account Creation Improvements
         ([#4405](https://github.com/Automattic/pocket-casts-android/pull/4405))
+    *   Onboarding Recommendation Changes
+        ([#4431](https://github.com/Automattic/pocket-casts-android/pull/4431))
 *   Updates
     *   Improved notification permission experience
         ([#4408](https://github.com/Automattic/pocket-casts-android/pull/4408))
-* Bug Fixes
+*   Bug Fixes
     *   Fix File Settings bottom content being obstructed by the Mini Player.
         ([#4414](https://github.com/Automattic/pocket-casts-android/pull/4414))
     *   Fix podcast image shadow animation.
         ([#4429](https://github.com/Automattic/pocket-casts-android/pull/4429))
+    *   Fix layout spacing in onboarding interests page
+        ([#4471](https://github.com/Automattic/pocket-casts-android/pull/4471))
+        
 
 7.96
 -----

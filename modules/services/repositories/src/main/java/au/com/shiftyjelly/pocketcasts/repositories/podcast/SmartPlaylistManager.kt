@@ -33,7 +33,6 @@ interface SmartPlaylistManager {
     fun updateBlocking(playlist: PlaylistEntity, userPlaylistUpdate: UserPlaylistUpdate?, isCreatingFilter: Boolean = false)
 
     fun updateAutoDownloadStatus(playlist: PlaylistEntity, autoDownloadEnabled: Boolean)
-    fun updateAutoDownloadStatusRxCompletable(playlist: PlaylistEntity, autoDownloadEnabled: Boolean): Completable
 
     fun deleteBlocking(playlist: PlaylistEntity)
     suspend fun resetDb()
@@ -43,8 +42,6 @@ interface SmartPlaylistManager {
 
     fun countEpisodesBlocking(id: Long?, episodeManager: EpisodeManager, playbackManager: PlaybackManager): Int
     fun countEpisodesRxFlowable(playlist: PlaylistEntity, episodeManager: EpisodeManager, playbackManager: PlaybackManager): Flowable<Int>
-
-    fun checkForEpisodesToDownloadBlocking(episodeManager: EpisodeManager, playbackManager: PlaybackManager)
 
     suspend fun removePodcastFromPlaylists(podcastUuid: String)
 

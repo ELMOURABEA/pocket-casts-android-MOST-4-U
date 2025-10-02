@@ -22,6 +22,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
+import androidx.core.app.ActivityOptionsCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -122,8 +123,8 @@ import au.com.shiftyjelly.pocketcasts.player.view.bookmark.BookmarkActivityContr
 import au.com.shiftyjelly.pocketcasts.player.view.bookmark.BookmarksContainerFragment
 import au.com.shiftyjelly.pocketcasts.player.view.dialog.MiniPlayerDialog
 import au.com.shiftyjelly.pocketcasts.player.view.video.VideoActivity
+import au.com.shiftyjelly.pocketcasts.playlists.PlaylistFragment
 import au.com.shiftyjelly.pocketcasts.playlists.PlaylistsFragment
-import au.com.shiftyjelly.pocketcasts.playlists.smart.PlaylistFragment
 import au.com.shiftyjelly.pocketcasts.podcasts.view.ProfileEpisodeListFragment
 import au.com.shiftyjelly.pocketcasts.podcasts.view.episode.EpisodeContainerFragment
 import au.com.shiftyjelly.pocketcasts.podcasts.view.folders.SuggestedFoldersFragment
@@ -147,6 +148,7 @@ import au.com.shiftyjelly.pocketcasts.repositories.opml.OpmlImportTask
 import au.com.shiftyjelly.pocketcasts.repositories.playback.PlaybackManager
 import au.com.shiftyjelly.pocketcasts.repositories.playback.PlaybackState
 import au.com.shiftyjelly.pocketcasts.repositories.playback.UpNextSource
+import au.com.shiftyjelly.pocketcasts.repositories.playlist.Playlist
 import au.com.shiftyjelly.pocketcasts.repositories.podcast.EpisodeManager
 import au.com.shiftyjelly.pocketcasts.repositories.podcast.PodcastManager
 import au.com.shiftyjelly.pocketcasts.repositories.podcast.SmartPlaylistManager
@@ -333,6 +335,11 @@ class MainActivity :
     private val onboardingLauncher: ActivityResultLauncher<Intent> = registerForActivityResult(OnboardingActivityContract()) { result ->
         when (result) {
             is OnboardingFinish.Done -> {
+                if (!settings.hasCompletedOnboarding()) {
+                    val podcastCount = runBlocking(Dispatchers.Default) { podcastManager.countSubscribed() }
+                    val landingTab = if (podcastCount == 0) VR.id.navigation_discover else VR.id.navigation_podcasts
+                    openTab(landingTab)
+                }
                 settings.setHasDoneInitialOnboarding()
             }
 
@@ -609,7 +616,11 @@ class MainActivity :
     }
 
     override fun openOnboardingFlow(onboardingFlow: OnboardingFlow) {
-        onboardingLauncher.launch(launchIntent(onboardingFlow))
+        onboardingLauncher.launch(
+            launchIntent(onboardingFlow),
+            ActivityOptionsCompat
+                .makeCustomAnimation(this, R.anim.onboarding_enter, R.anim.onboarding_disappear),
+        )
     }
 
     override fun onStart() {
@@ -717,6 +728,7 @@ class MainActivity :
         mediaRouter?.removeCallback(mediaRouterCallback)
     }
 
+    @SuppressLint("GestureBackNavigation")
     @Deprecated("Deprecated in Java")
     @Suppress("DEPRECATION")
     override fun onBackPressed() {
@@ -1187,7 +1199,7 @@ class MainActivity :
         binding.frameBottomSheet.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
     }
 
-    override fun bottomSheetClosePressed(fragment: Fragment) {
+    override fun closeBottomSheet() {
         frameBottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
         binding.frameBottomSheet.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
     }
@@ -1282,6 +1294,10 @@ class MainActivity :
 
     override fun closePodcastsToRoot() {
         navigator.reset(tab = VR.id.navigation_podcasts, resetRootFragment = true)
+    }
+
+    override fun closeFiltersToRoot() {
+        navigator.reset(tab = VR.id.navigation_filters, resetRootFragment = true)
     }
 
     override fun setSupportActionBar(toolbar: Toolbar?) {
@@ -1440,9 +1456,10 @@ class MainActivity :
 
                 is ShowPlaylistDeepLink -> {
                     if (FeatureFlag.isEnabled(Feature.PLAYLISTS_REBRANDING, immutable = true)) {
+                        val type = Playlist.Type.fromValue(deepLink.playlistType) ?: return
                         closePlayer()
                         openTab(VR.id.navigation_filters)
-                        addFragment(PlaylistFragment.newInstance(deepLink.playlistUuid))
+                        addFragment(PlaylistFragment.newInstance(deepLink.playlistUuid, type))
                     } else {
                         launch(Dispatchers.Default) {
                             smartPlaylistManager.findByUuid(deepLink.playlistUuid)?.let {

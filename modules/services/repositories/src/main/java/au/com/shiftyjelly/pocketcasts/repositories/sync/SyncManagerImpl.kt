@@ -29,6 +29,7 @@ import au.com.shiftyjelly.pocketcasts.servers.sync.LoginIdentity
 import au.com.shiftyjelly.pocketcasts.servers.sync.NamedSettingsCaller
 import au.com.shiftyjelly.pocketcasts.servers.sync.NamedSettingsRequest
 import au.com.shiftyjelly.pocketcasts.servers.sync.NamedSettingsResponse
+import au.com.shiftyjelly.pocketcasts.servers.sync.PodcastEpisodesRequest
 import au.com.shiftyjelly.pocketcasts.servers.sync.PodcastEpisodesResponse
 import au.com.shiftyjelly.pocketcasts.servers.sync.PromoCodeResponse
 import au.com.shiftyjelly.pocketcasts.servers.sync.ServerFile
@@ -49,8 +50,10 @@ import au.com.shiftyjelly.pocketcasts.utils.Optional
 import au.com.shiftyjelly.pocketcasts.utils.log.LogBuffer
 import com.jakewharton.rxrelay2.BehaviorRelay
 import com.pocketcasts.service.api.BookmarksResponse
+import com.pocketcasts.service.api.EpisodesResponse
 import com.pocketcasts.service.api.PodcastRatingResponse
 import com.pocketcasts.service.api.PodcastRatingsResponse
+import com.pocketcasts.service.api.PodcastsEpisodesRequest
 import com.pocketcasts.service.api.ReferralCodeResponse
 import com.pocketcasts.service.api.ReferralRedemptionResponse
 import com.pocketcasts.service.api.ReferralValidationResponse
@@ -271,14 +274,8 @@ class SyncManagerImpl @Inject constructor(
     override fun uploadFileToServerRxCompletable(episode: UserEpisode): Completable = getCacheTokenOrLoginRxSingle { token ->
         syncServiceManager.getFileUploadUrl(episode.toUploadData(), token)
     }.flatMapCompletable { url ->
-        Timber.d("Upload url $url")
         syncServiceManager.uploadToServer(episode, url)
-            .doOnNext { progress ->
-                Timber.d("Progress $progress")
-                UploadProgressManager.uploadObservers[episode.uuid]?.forEach { consumer ->
-                    consumer.accept(progress)
-                }
-            }
+            .doOnNext { progress -> UploadProgressManager.pushProgress(episode.uuid, progress) }
             .ignoreElements()
     }
 
@@ -373,6 +370,10 @@ class SyncManagerImpl @Inject constructor(
 
     override suspend fun getBookmarksOrThrow(): BookmarksResponse = getCacheTokenOrLogin { token ->
         syncServiceManager.getBookmarks(token)
+    }
+
+    override suspend fun getEpisodesOrThrow(request: PodcastsEpisodesRequest): EpisodesResponse = getCacheTokenOrLogin { token ->
+        syncServiceManager.getEpisodes(request, token)
     }
 
     override fun getPodcastEpisodesRxSingle(podcastUuid: String): Single<PodcastEpisodesResponse> = getCacheTokenOrLoginRxSingle { token ->

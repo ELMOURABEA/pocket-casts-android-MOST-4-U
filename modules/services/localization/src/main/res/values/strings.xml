@@ -21,6 +21,8 @@
     <string name="playing_bookmark">Playing \"%s\"</string>
     <string name="skipping_to">Skipping to %s</string>
     <string name="add_to_up_next">Add to Up Next</string>
+    <string name="add_to_up_next_top">Add to Up Next top</string>
+    <string name="add_to_up_next_bottom">Add to Up Next bottom</string>
     <string name="add_to_up_next_question">Add to up next?</string>
     <string name="archive">Archive</string>
     <string name="unarchive">Unarchive</string>
@@ -83,6 +85,7 @@
     <string name="played">Played</string>
     <string name="podcast_and_episode">Podcast &amp; Episode</string>
     <string name="remove_from_up_next">Remove from Up Next</string>
+    <string name="remove_from_playlist">Remove from playlist</string>
     <string name="renew_your_subscription">Renew your Subscription</string>
     <string name="removed">Removed</string>
     <string name="restore">Restore</string>
@@ -229,6 +232,8 @@
     <string name="other_options">Other Options</string>
     <string name="add_episodes">Add Episodes</string>
     <string name="your_podcasts">Your Podcasts</string>
+    <string name="unavailable">Unavailable</string>
+    <string name="browse_shows">Browse Shows</string>
 
     <string name="multiselect_actions_shown">Shortcut in toolbar</string>
     <string name="multiselect_actions_hidden">In overflow</string>
@@ -591,6 +596,11 @@
         <item quantity="one">%d podcast</item>
         <item quantity="other">%d podcasts</item>
     </plurals>
+    <string name="podcasts_selected_all">All podcasts selected</string>
+    <plurals name="podcasts_selected_count">
+        <item quantity="one">%1$d podcast selected</item>
+        <item quantity="other">%1$d podcasts selected</item>
+    </plurals>
     <string name="podcast_archive_all">Archive all</string>
     <string name="podcast_archive_all_played">Archive all played</string>
     <string name="podcast_archive_played">You should only do this if you don\'t want to see them anymore.</string>
@@ -777,6 +787,10 @@
         <item quantity="one">%1$d day</item>
         <item quantity="other">%1$d days</item>
     </plurals>
+    <plurals name="second_with_count">
+        <item quantity="one">%1$d second</item>
+        <item quantity="other">%1$d seconds</item>
+    </plurals>
 
     <!-- Recommendations -->
     <string name="you_might_like_empty_title">Couldn\'t load recommendations</string>
@@ -805,6 +819,7 @@
     <string name="episode_row_uploading">Uploading&#x2026; (%d%%)</string>
     <string name="episode_row_waiting_for_power">Waiting for power</string>
     <string name="episode_row_waiting_for_wifi">Waiting for WiFi</string>
+    <string name="episode_sort_custom_order">Custom order</string>
     <string name="episode_sort_long_to_short">Longest to shortest</string>
     <string name="episode_sort_title_a_z">Title (A–Z)</string>
     <string name="episode_sort_title_z_a">Title (Z–A)</string>
@@ -877,7 +892,7 @@
     <string name="filters_create_filter_by">FILTER BY</string>
     <string name="filters_create_filter_details">Filter details</string>
     <string name="filters_create_name">NAME</string>
-    <string name="filters_filter_name">Filter Name</string>
+    <string name="filters_filter_name">Playlist Name</string>
     <string name="filters_create_options">Filter options</string>
     <string name="filters_create_save_filter">Save filter</string>
     <string name="filters_create_select_criteria">Select your filter criteria using these buttons to create an up to date smart playlist of episodes.</string>
@@ -900,6 +915,7 @@
     <string name="filters_no_matching_episodes">The criteria you selected doesn&#x2019;t match any current episodes in your subscriptions.\n\nChoose different criteria, or save this filter if you think it will match episodes in the future.</string>
     <string name="filters_no_matching_episodes_title">No Matching Episodes</string>
     <string name="filters_not_found">No filters found</string>
+    <string name="playlists_not_found">No playlists found</string>
     <string name="filters_options_delete">Delete filter</string>
     <string name="filters_options_download_all">Download all</string>
     <string name="filters_options_play_all" translatable="false">@string/play_all</string>
@@ -920,7 +936,7 @@
     <string name="filters_time_anytime">Any time</string>
     <string name="filters_time_month">Last month</string>
     <string name="filters_time_week">Last week</string>
-    <string name="filters_title_in_progress" translatable="false">@string/in_progress</string>
+    <string name="filters_title_in_progress" translatable="false">@string/in_progress_uppercase</string>
     <string name="filters_title_new_releases">New Releases</string>
     <string name="filters_title_starred" translatable="false">@string/starred</string>
     <string name="filters_warning_delete_button" translatable="false">@string/filters_options_delete</string>
@@ -932,6 +948,17 @@
 
     <!-- Playlists -->
 
+    <!-- %1$s is a playlist title  -->
+    <string name="add_to_playlist">Add to “%1$s”</string>
+    <string name="add_to_playlist_description">Add to playlist</string>
+    <string name="add_to_playlist_find_playlist">Find playlist</string>
+    <string name="add_to_playlist_no_playlist_found_body">We couldn’t find any playlist for that search. Create a new playlist or try another keyword.</string>
+    <string name="add_to_playlist_no_playlist_found_title">Add to playlist</string>
+    <!-- %1$s is episode count like "1 episode", "7 episodes". %2$s is a playlist title  -->
+    <string name="added_to_playlist">%1$s added to “%2$s”</string>
+    <!-- Accessibility description. %1$s is an episode title-->
+    <string name="add_to_playlist_episode_desc">Add %1$s to playlist</string>
+    <string name="add_to_playlist_failure_message">This playlist is full. Remove a few episodes or start a new one.</string>
     <string name="create_playlist">Create Playlist</string>
     <string name="create_smart_playlist">Create Smart Playlist</string>
     <string name="decrement_longer_than_duration">Decrement \"longer than\" duration</string>
@@ -941,17 +968,44 @@
     <string name="episode_status_rule_description">%1$s + %2$d</string>
     <string name="increment_longer_than_duration">Increment \"longer than\" duration</string>
     <string name="increment_shorter_than_duration">Increment \"shorter than\" duration</string>
+    <string name="manual_playlist_no_content_body">Swipe left on an episode to add it to your playlist.</string>
+    <string name="manual_playlist_no_content_title">Add episodes to your playlist</string>
+    <string name="manual_playlist_no_content_title_alternative">Start building your playlist</string>
+    <string name="manual_playlist_no_available_episode_body">Looks like you’ve added all episodes from this show.</string>
+    <string name="manual_playlist_no_available_episode_title">No available episodes</string>
+    <string name="manual_playlist_search_no_episode_body" translatable="false">@string/podcast_no_episodes_matching</string>
+    <string name="manual_playlist_search_no_episode_title" translatable="false">@string/podcast_no_episodes_found</string>
+    <string name="manual_playlist_search_no_podcast_body">We couldn’t find any podcast for that search. Try another keyword.</string>
+    <string name="manual_playlist_search_no_podcast_title">No podcast found</string>
+    <string name="manual_playlist_search_no_podcast_or_folder_body">We couldn’t find any podcast or folder for that search. Try another keyword.</string>
+    <string name="manual_playlist_search_no_podcast_or_folder_title" translatable="false">@string/manual_playlist_search_no_podcast_title</string>
     <string name="new_playlist">New Playlist</string>
     <string name="new_playlists_title_placeholder">Playlist’s name</string>
     <string name="new_smart_playlist_banner_body">Automatically add episodes based on rules</string>
     <string name="new_smart_playlist_banner_title">Make into Smart Playlist</string>
+    <string name="playlist_archive_all">Archive All</string>
     <string name="playlist_artwork_description">Playlist’s artwork</string>
     <string name="playlist_download_all">Download All</string>
+    <string name="playlist_edit_episodes">Rearrange Episodes</string>
+    <string name="playlist_edit_episodes_title">Edit playlist</string>
+    <string name="playlist_episode_unavailable_title">Episode unavailable</string>
+    <string name="playlist_episode_unavailable_description">The podcast creator deleted this episode. It will stay in your playlist until you remove it.</string>
+    <string name="playlist_episode_unavailable_cta">Remove from playlist</string>
+    <string name="playlist_episodes_archived_count">%1$d archived</string>
+    <string name="playlist_episodes_archived_title">No Episodes</string>
+    <plurals name="playlist_episodes_archived_description">
+        <item quantity="one">Your episode in this playlist has been archived</item>
+        <item quantity="other">All %1$d episodes of this playlist have been archived</item>
+    </plurals>
+    <string name="playlist_episodes_hide_archived" translatable="false">@string/podcast_hide_archived</string>
+    <string name="playlist_episodes_show_archived" translatable="false">@string/show_archived</string>
+    <string name="playlist_is_full_description">Playlist is full. Try creating a new one.</string>
     <string name="playlist_options">Playlist Options</string>
     <string name="playlist_play_all">Play All</string>
     <string name="playlist_select_episodes">Select Episodes</string>
     <string name="playlist_setting_auto_download_description">Enable to auto download episodes in this playlist.</string>
     <string name="playlist_sort_by">Sort By</string>
+    <string name="playlist_unarchive_all">Unarchive All</string>
     <string name="playlists">Playlists</string>
     <string name="playlists_empty_state_body">Playlists let you organize episodes manually or automatically with Smart Rules.</string>
     <string name="playlists_empty_state_title">Organize episodes your way</string>
@@ -959,12 +1013,20 @@
     <string name="playlists_onboarding_playlist_title">Introducing Playlists</string>
     <string name="playlists_onboarding_smart_playlist_description">They still work exactly the same, using rules to auto-add your episodes. All your existing Filters are right here, nothing’s changed but the name.</string>
     <string name="playlists_onboarding_smart_playlist_title">Filters are now Smart Playlists</string>
+    <string name="playlists_selected_all">All playlists selected</string>
+    <plurals name="playlists_selected_count">
+        <item quantity="one">%1$d playlist selected</item>
+        <item quantity="other">%1$d playlists selected</item>
+    </plurals>
+    <string name="podcast_not_in_playlists">Not included in any Smart Playlists</string>
     <string name="premade_playlists_tooltip_body">We made these to help you get started.\nThey auto-update based on your listening.</string>
     <string name="premade_playlists_tooltip_title">Smart Playlists, ready to go</string>
     <!-- %1$s is playlist's title -->
     <string name="preview_playlist">Preview %1$s</string>
     <string name="save_smart_rule">Save Smart Rule</string>
+    <string name="select_smart_playlists">Select Smart Playlists</string>
     <string name="smart_playlist">Smart Playlist</string>
+    <string name="smart_playlists">Smart Playlists</string>
     <string name="smart_playlist_create_no_content_body">None of the episodes in your podcasts match these rules.\n\nTry adjusting the rules, or save this playlist for future episodes that might fit.</string>
     <string name="smart_playlist_create_no_content_title">No matching episodes</string>
     <string name="smart_playlist_no_content_body">Either it’s time to celebrate completing this list, or edit your rules to get some more.</string>
@@ -1365,6 +1427,7 @@
     <string name="settings_auto_download_charging">Only when charging</string>
     <string name="settings_auto_download_clear_errors">Clear all download errors</string>
     <string name="settings_auto_download_clearing_errors">Clearing all download errors</string>
+    <string name="settings_auto_download_playlists">Auto download playlists</string>
     <string name="settings_auto_download_filters">Auto download filters</string>
     <string name="settings_auto_download_filters_episodes">All filter episodes</string>
     <string name="settings_auto_download_new_episodes">New episodes</string>
@@ -1375,6 +1438,7 @@
         <item quantity="other">Automatically download the latest %s episodes from new shows you follow.</item>
     </plurals>
 
+    <string name="number_one">one</string>
     <string name="number_two">two</string>
     <string name="number_three">three</string>
     <string name="number_five">five</string>
@@ -1408,6 +1472,7 @@
     <string name="settings_battery_learn_more_url" translatable="false">https://support.pocketcasts.com/article/playback-pausing-randomly-or-when-screen-is-locked/</string>
     <string name="settings_select_filters">Select filters</string>
     <string name="settings_choose_podcasts">Choose podcasts</string>
+    <string name="settings_choose_playlists">Choose playlists</string>
     <string name="settings_close_upgrade_offer">close upgrade offer</string>
     <string name="settings_customize_buttons_displayed_in_android_13_notification_and_android_auto">Customize the buttons displayed in Android 13+ playback notifications and Android Auto.</string>
     <string name="settings_developer">Developer</string>
@@ -1725,6 +1790,7 @@
     <string name="settings_status_service_refresh_summary">The service used to find new episodes.</string>
     <string name="settings_status_service_account">Account Service</string>
     <string name="settings_status_service_account_summary">The service used to store episode progress, podcasts you follow, filters, etc.</string>
+    <string name="settings_status_service_account_summary_2">The service used to store episode progress, podcasts you follow, playlists, etc.</string>
     <string name="settings_status_service_discover"><![CDATA[Discover & Search]]></string>
     <string name="settings_status_service_discover_summary">The discover section of the app, including podcast search.</string>
     <string name="settings_status_service_ad_blocker_help_singular">The most common cause is that you have an ad-blocker configured on your phone or network. You’ll need to unblock the domain %s</string>
@@ -2236,9 +2302,9 @@
 
     <!--    Tasker Plugin-->
 
-    <string name="must_provide_filter_name">Must provide filter name</string>
-    <string name="filter_x_not_found">Filter %1$s not found</string>
-    <string name="no_episodes_in_filter_x">No episodes in Filter %1$s</string>
+    <string name="must_provide_filter_name">Must provide playlist name</string>
+    <string name="filter_x_not_found">Playlist %1$s not found</string>
+    <string name="no_episodes_in_filter_x">No episodes in Playlist %1$s</string>
     <string name="must_provide_command_name">Must provide command name</string>
     <string name="command_x_not_valid">Command %1$s not valid</string>
     <string name="playback_command">Playback Command</string>
@@ -2255,13 +2321,13 @@
     <string name="time_to_skip_to_not_valid">Time to skip to %1$s not valid</string>
     <string name="time_to_skip_not_valid">Time to skip %1$s not valid</string>
     <string name="playback_speed_not_valid">Playback Speed %1$s not valid</string>
-    <string name="pocket_casts_play_filter">Pocket Casts Play Filter</string>
+    <string name="pocket_casts_play_filter">Pocket Casts Play Playlist</string>
     <string name="pocket_casts_control_playback">Pocket Casts Control Playback</string>
     <string name="pocket_casts_query_podcasts">Pocket Casts Query Podcasts</string>
     <string name="pocket_casts_query_podcast_episodes">Pocket Casts Query Podcast Episodes</string>
     <string name="pocket_casts_add_to_up_next">Pocket Casts Add To Up Next</string>
-    <string name="pocket_casts_query_filters">Pocket Casts Query Filters</string>
-    <string name="pocket_casts_query_filter_episodes">Pocket Casts Query Filter Episodes</string>
+    <string name="pocket_casts_query_filters">Pocket Casts Query Playlists</string>
+    <string name="pocket_casts_query_filter_episodes">Pocket Casts Query Playlist Episodes</string>
     <string name="pocket_casts_query_up_next_episodes">Pocket Casts Query Up Next Episodes</string>
     <string name="set_playback_speed">Set Playback Speed</string>
     <string name="playback_speed_between_values">Playback Speed (between 0.5 and 3)</string>
@@ -2302,10 +2368,10 @@
     <string name="no_episode_ids_provided">No episode IDs provided</string>
     <string name="no_episodes_found_for_episode_ids_x">No episodes found for episode IDs %1$s</string>
     <string name="episode_count">Episode Count</string>
-    <string name="filter_id">Filter ID</string>
-    <string name="filter_id_description">An unique ID that represents the filter. Can be used on the \'Query Filter Episodes\' action.</string>
-    <string name="filter_title">Filter Title</string>
-    <string name="filter_id_or_title">Filter ID or Title</string>
+    <string name="filter_id">Playlist ID</string>
+    <string name="filter_id_description">An unique ID that represents the playlist. Can be used on the \'Query Playlist Episodes\' action.</string>
+    <string name="filter_title">Playlist Title</string>
+    <string name="filter_id_or_title">Playlist ID or Title</string>
     <string name="error_opening_links_activity_not_found">Looks like you don\'t have an app capable of viewing this content.</string>
 
     <!-- Wear -->
@@ -2468,7 +2534,7 @@
     <string name="winback_cancel_subscription_perk_plus">Access to Pocket Casts Plus features will be locked after this date.</string>
     <string name="winback_cancel_subscription_perk_folders">Your folders will be removed and their contents will move back to the Podcasts screen.</string>
     <string name="winback_cancel_subscription_perk_files">All files uploaded to your Pocket Casts account will be deleted (but downloaded files on your mobile devices will remain).</string>
-    <string name="winback_cancel_subscription_stay_button_label">Actually, I want to stay</string>
+    <string name="winback_cancel_subscription_stay_button_label">Keep my subscription</string>
     <string name="winback_cancel_subscription_cancel_button_label">Yes, Cancel my Subscription</string>
     <string name="winback_cancel_subscription_accept_offer_button_label">Accept offer</string>
     <string name="winback_cancel_subscription_continue_cancel_button_label">Continue with cancellation</string>
@@ -2513,6 +2579,7 @@
     <string name="notification_up_next_message">Build a playback queue and say goodbye to jumping around between episodes.</string>
     <string name="notification_filters_title">Organize your episodes</string>
     <string name="notification_filters_message">Create smart filters to organize your episodes.</string>
+    <string name="notification_filters_message_2">Create playlists to organize your episodes.</string>
     <string name="notification_themes_title">Time for a new look</string>
     <string name="notification_themes_message">Browse our themes and find the one that suits your style.</string>
     <string name="notification_staff_picks_title">Explore our Staff Picks</string>

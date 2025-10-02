@@ -13,6 +13,7 @@ android {
 
     defaultConfig {
         minSdk = project.property("minSdkVersionAutomotive") as Int
+        targetSdk = project.property("targetSdkVersionAutomotive") as Int
         applicationId = project.property("applicationId").toString()
     }
 
@@ -38,6 +39,12 @@ android {
 
     lint {
         checkDependencies = false
+    }
+}
+
+androidComponents {
+    beforeVariants { builder ->
+        builder.enable = builder.buildType != "prototype"
     }
 }
 

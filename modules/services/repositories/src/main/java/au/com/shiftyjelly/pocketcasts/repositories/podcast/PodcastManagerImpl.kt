@@ -13,7 +13,6 @@ import au.com.shiftyjelly.pocketcasts.models.to.AutoArchiveInactive
 import au.com.shiftyjelly.pocketcasts.models.to.AutoArchiveLimit
 import au.com.shiftyjelly.pocketcasts.models.to.PlaybackEffects
 import au.com.shiftyjelly.pocketcasts.models.to.PodcastGrouping
-import au.com.shiftyjelly.pocketcasts.models.type.AutoDownloadLimitSetting
 import au.com.shiftyjelly.pocketcasts.models.type.EpisodeStatusEnum
 import au.com.shiftyjelly.pocketcasts.models.type.EpisodesSortType
 import au.com.shiftyjelly.pocketcasts.models.type.PodcastsSortType
@@ -31,6 +30,8 @@ import au.com.shiftyjelly.pocketcasts.repositories.sync.SyncManager
 import au.com.shiftyjelly.pocketcasts.servers.refresh.RefreshServiceManager
 import au.com.shiftyjelly.pocketcasts.servers.refresh.UpdatePodcastResponse.EpisodeFound
 import au.com.shiftyjelly.pocketcasts.servers.refresh.UpdatePodcastResponse.Retry
+import au.com.shiftyjelly.pocketcasts.utils.featureflag.Feature
+import au.com.shiftyjelly.pocketcasts.utils.featureflag.FeatureFlag
 import au.com.shiftyjelly.pocketcasts.utils.log.LogBuffer
 import com.jakewharton.rxrelay2.PublishRelay
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -80,30 +81,26 @@ class PodcastManagerImpl @Inject constructor(
     private val unsubscribeRelay = PublishRelay.create<String>()
     private val podcastDao = appDatabase.podcastDao()
     private val episodeDao = appDatabase.episodeDao()
+    private val playlistDao = appDatabase.playlistDao()
 
     override suspend fun unsubscribe(podcastUuid: String, playbackManager: PlaybackManager) {
         try {
             val podcast = podcastDao.findPodcastByUuid(podcastUuid) ?: return
             val episodes = episodeManager.findEpisodesByPodcastOrderedSuspend(podcast)
-            episodeManager.deleteEpisodesAsync(episodes, playbackManager)
 
-            if (syncManager.isLoggedIn()) {
-                podcast.isSubscribed = false
-                podcast.syncStatus = Podcast.SYNC_STATUS_NOT_SYNCED
-                podcast.isShowNotifications = false
-                podcast.autoDownloadStatus = Podcast.AUTO_DOWNLOAD_OFF
-                podcast.autoAddToUpNext = Podcast.AutoAddUpNext.OFF
-                podcast.autoArchiveAfterPlaying = AutoArchiveAfterPlaying.defaultValue(context)
-                podcast.autoArchiveInactive = AutoArchiveInactive.Default
-                podcast.autoArchiveEpisodeLimit = null
-                podcast.overrideGlobalArchive = false
-                podcast.folderUuid = null
-                podcastDao.updateSuspend(podcast)
-            } else {
-                // if they aren't signed in, just blow it all away
-                podcastDao.delete(podcast)
-                episodeDao.deleteAll(episodes)
-            }
+            podcast.isSubscribed = false
+            podcast.syncStatus = Podcast.SYNC_STATUS_NOT_SYNCED
+            podcast.isShowNotifications = false
+            podcast.autoDownloadStatus = Podcast.AUTO_DOWNLOAD_OFF
+            podcast.autoAddToUpNext = Podcast.AutoAddUpNext.OFF
+            podcast.autoArchiveAfterPlaying = AutoArchiveAfterPlaying.defaultValue(context)
+            podcast.autoArchiveInactive = AutoArchiveInactive.Default
+            podcast.autoArchiveEpisodeLimit = null
+            podcast.overrideGlobalArchive = false
+            podcast.folderUuid = null
+            podcastDao.updateSuspend(podcast)
+
+            episodeManager.deleteEpisodeFilesAsync(episodes, playbackManager)
             smartPlaylistManager.removePodcastFromPlaylists(podcastUuid)
 
             unsubscribeRelay.accept(podcastUuid)
@@ -264,7 +261,7 @@ class PodcastManagerImpl @Inject constructor(
 
     override fun deletePodcastIfUnusedBlocking(podcast: Podcast, playbackManager: PlaybackManager): Boolean {
         // we don't delete podcasts that haven't been synced or you're still subscribed to
-        if ((syncManager.isLoggedIn() && podcast.isNotSynced) || podcast.isSubscribed) {
+        if ((syncManager.isLoggedIn() && podcast.isNotSynced) || podcast.isSubscribed || runBlocking { isPodcastInManualPlaylist(podcast) }) {
             return false
         }
 
@@ -492,8 +489,8 @@ class PodcastManagerImpl @Inject constructor(
         return podcastDao.countSubscribedRxSingle()
     }
 
-    override fun countSubscribedRxFlowable(): Flowable<Int> {
-        return podcastDao.countSubscribedRxFlowable()
+    override fun countSubscribedFlow(): Flow<Int> {
+        return podcastDao.countSubscribedFlow()
     }
 
     override fun countDownloadStatusBlocking(downloadStatus: Int): Int {
@@ -537,6 +534,11 @@ class PodcastManagerImpl @Inject constructor(
         podcastDao.updateAllAutoDownloadStatus(autoDownloadStatus)
     }
 
+    override suspend fun updateAutoDownload(podcastUuids: Collection<String>, isEnabled: Boolean) {
+        val status = if (isEnabled) Podcast.AUTO_DOWNLOAD_NEW_EPISODES else Podcast.AUTO_DOWNLOAD_OFF
+        podcastDao.updateAutoDownloadStatus(podcastUuids, status)
+    }
+
     override suspend fun updateAllShowNotifications(showNotifications: Boolean) {
         if (showNotifications) {
             settings.notifyRefreshPodcast.set(true, updateModifiedAt = true)
@@ -545,7 +547,6 @@ class PodcastManagerImpl @Inject constructor(
     }
 
     override fun updateAutoDownloadStatusBlocking(podcast: Podcast, autoDownloadStatus: Int) {
-        podcast.autoDownloadStatus = autoDownloadStatus
         podcastDao.updateAutoDownloadStatusBlocking(autoDownloadStatus, podcast.uuid)
     }
 
@@ -669,7 +670,7 @@ class PodcastManagerImpl @Inject constructor(
             }
 
             val currentDownloadCount = podcastUuidToDownloadCount.getOrDefault(episode.podcastUuid, 0)
-            if (currentDownloadCount >= AutoDownloadLimitSetting.getNumberOfEpisodes(settings.autoDownloadLimit.value)) {
+            if (currentDownloadCount >= settings.autoDownloadLimit.value.episodeCount) {
                 continue // Skip to the next episode since it already downloaded the limit of episodes for this podcast
             }
 
@@ -767,5 +768,14 @@ class PodcastManagerImpl @Inject constructor(
 
     override suspend fun countEpisodesByPodcast(podcastUuid: String): Int {
         return episodeDao.countEpisodesByPodcast(podcastUuid)
+    }
+
+    private suspend fun isPodcastInManualPlaylist(podcast: Podcast): Boolean {
+        val podcastsInPlaylists = if (FeatureFlag.isEnabled(Feature.PLAYLISTS_REBRANDING, immutable = true)) {
+            playlistDao.getPodcastsAddedToManualPlaylists()
+        } else {
+            emptyList()
+        }
+        return podcast.uuid in podcastsInPlaylists
     }
 }

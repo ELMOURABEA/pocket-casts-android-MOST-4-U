@@ -23,9 +23,9 @@ import au.com.shiftyjelly.pocketcasts.repositories.notification.NotificationHelp
 import au.com.shiftyjelly.pocketcasts.repositories.notification.NotificationManager
 import au.com.shiftyjelly.pocketcasts.repositories.playback.PlaybackManager
 import au.com.shiftyjelly.pocketcasts.repositories.playback.SleepTimerRestartWhenShakingDevice
+import au.com.shiftyjelly.pocketcasts.repositories.playlist.PlaylistInteractionNotifier
 import au.com.shiftyjelly.pocketcasts.repositories.podcast.EpisodeManager
 import au.com.shiftyjelly.pocketcasts.repositories.podcast.PodcastManager
-import au.com.shiftyjelly.pocketcasts.repositories.podcast.SmartPlaylistManager
 import au.com.shiftyjelly.pocketcasts.repositories.podcast.UserEpisodeManager
 import au.com.shiftyjelly.pocketcasts.repositories.shortcuts.DynamicShortcutsSynchronizer
 import au.com.shiftyjelly.pocketcasts.repositories.support.DatabaseExportHelper
@@ -45,6 +45,7 @@ import au.com.shiftyjelly.pocketcasts.widget.PlayerWidgetManager
 import coil.Coil
 import coil.ImageLoader
 import com.google.firebase.FirebaseApp
+import com.squareup.moshi.Moshi
 import dagger.hilt.android.HiltAndroidApp
 import java.io.File
 import java.util.concurrent.Executors
@@ -72,6 +73,8 @@ class PocketCastsApplication :
 
     @Inject lateinit var appLifecycleObserver: AppLifecycleObserver
 
+    @Inject lateinit var moshi: Moshi
+
     @Inject lateinit var statsManager: StatsManager
 
     @Inject lateinit var podcastManager: PodcastManager
@@ -81,8 +84,6 @@ class PocketCastsApplication :
     @Inject lateinit var settings: Settings
 
     @Inject lateinit var fileStorage: FileStorage
-
-    @Inject lateinit var smartPlaylistManager: SmartPlaylistManager
 
     @Inject lateinit var playbackManager: PlaybackManager
 
@@ -128,6 +129,8 @@ class PocketCastsApplication :
     @Inject lateinit var notificationManager: NotificationManager
 
     @Inject lateinit var shortcutsSynchronizer: DynamicShortcutsSynchronizer
+
+    @Inject lateinit var playlistInteractionNotifier: PlaylistInteractionNotifier
 
     override fun onCreate() {
         if (BuildConfig.DEBUG) {
@@ -200,7 +203,7 @@ class PocketCastsApplication :
 
             withContext(Dispatchers.Default) {
                 playbackManager.setup()
-                downloadManager.setup(episodeManager, podcastManager, smartPlaylistManager, playbackManager)
+                downloadManager.setup(episodeManager, podcastManager, playbackManager)
 
                 val isRestoreFromBackup = settings.isRestoreFromBackup()
                 // as this may be a different device clear the storage location on a restore
@@ -251,8 +254,9 @@ class PocketCastsApplication :
                 }
 
                 VersionMigrationsWorker.performMigrations(
-                    settings = settings,
                     context = this@PocketCastsApplication,
+                    settings = settings,
+                    moshi = moshi,
                 )
 
                 // check that we have .nomedia files in existing folders
@@ -273,6 +277,7 @@ class PocketCastsApplication :
         CuratedPodcastsSyncWorker.enqueuePeriodicWork(this)
         engageSdkBridge.registerIntegration()
         shortcutsSynchronizer.keepShortcutsInSync()
+        playlistInteractionNotifier.monitorPlaylistsInteraction()
 
         keepPlayerWidgetsUpdated()
 

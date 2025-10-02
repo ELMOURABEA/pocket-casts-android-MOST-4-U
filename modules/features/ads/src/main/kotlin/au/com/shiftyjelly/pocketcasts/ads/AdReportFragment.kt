@@ -85,14 +85,7 @@ class AdReportFragment : BaseDialogFragment() {
     }
 
     private fun reportAd(reason: AdReportReason) {
-        analyticsTracker.track(
-            AnalyticsEvent.BANNER_AD_REPORT,
-            mapOf(
-                "ad_id" to args.ad.id,
-                "reason" to reason.analyticsName,
-                "source" to args.ad.location.analyticsName,
-            ),
-        )
+        analyticsTracker.trackBannerAdReport(id = args.ad.id, reason = reason.analyticsName, location = args.ad.location.value)
 
         val snackbarView = (requireActivity() as FragmentHostListener).snackBarView()
         Snackbar.make(snackbarView, getString(LR.string.ad_report_confirmation), Snackbar.LENGTH_LONG).show()

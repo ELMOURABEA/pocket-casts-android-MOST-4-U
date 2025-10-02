@@ -62,10 +62,16 @@ class ShelfSharedViewModel @Inject constructor(
             .observeOn(Schedulers.io())
 
     private val shelfUpNextObservable = upNextStateObservable
-        .distinctUntilChanged { t1, t2 ->
-            val entry1 = t1 as? UpNextQueue.State.Loaded ?: return@distinctUntilChanged false
-            val entry2 = t2 as? UpNextQueue.State.Loaded ?: return@distinctUntilChanged false
-            return@distinctUntilChanged (entry1.episode as? PodcastEpisode)?.isStarred == (entry2.episode as? PodcastEpisode)?.isStarred && entry1.episode.episodeStatus == entry2.episode.episodeStatus && entry1.podcast?.isUsingEffects == entry2.podcast?.isUsingEffects
+        .distinctUntilChanged { oldState, newState ->
+            val oldLoaded = oldState as? UpNextQueue.State.Loaded ?: return@distinctUntilChanged false
+            val newLoaded = newState as? UpNextQueue.State.Loaded ?: return@distinctUntilChanged false
+            val oldPodcastEpisode = oldLoaded.episode as? PodcastEpisode
+            val newPodcastEpisode = newLoaded.episode as? PodcastEpisode
+
+            oldPodcastEpisode?.uuid == newPodcastEpisode?.uuid &&
+                oldPodcastEpisode?.isStarred == newPodcastEpisode?.isStarred &&
+                oldLoaded.episode.episodeStatus == newLoaded.episode.episodeStatus &&
+                oldLoaded.podcast?.isUsingEffects == newLoaded.podcast?.isUsingEffects
         }
 
     private val _navigationState: MutableSharedFlow<NavigationState> = MutableSharedFlow()
@@ -260,6 +266,16 @@ class ShelfSharedViewModel @Inject constructor(
         }
     }
 
+    fun onAddToPlaylistClick(
+        episodeUuid: String,
+        source: ShelfItemSource,
+    ) {
+        trackShelfAction(ShelfItem.AddToPlaylist, source)
+        viewModelScope.launch {
+            _navigationState.emit(NavigationState.AddEpisodeToPlaylist(episodeUuid))
+        }
+    }
+
     fun onMoreClick() {
         track(AnalyticsEvent.PLAYER_SHELF_OVERFLOW_MENU_SHOWN)
         viewModelScope.launch {
@@ -343,6 +359,7 @@ class ShelfSharedViewModel @Inject constructor(
         data object ShowMoreActions : NavigationState
         data object ShowAddBookmark : NavigationState
         data class StartUpsellFlow(val source: OnboardingUpgradeSource) : NavigationState
+        data class AddEpisodeToPlaylist(val episodeUuid: String) : NavigationState
     }
 
     sealed interface SnackbarMessage {

@@ -57,7 +57,13 @@ import au.com.shiftyjelly.pocketcasts.compose.components.TipPosition
 import au.com.shiftyjelly.pocketcasts.compose.components.TooltipPopup
 import au.com.shiftyjelly.pocketcasts.compose.preview.ThemePreviewParameterProvider
 import au.com.shiftyjelly.pocketcasts.compose.theme
+import au.com.shiftyjelly.pocketcasts.models.to.PlaylistIcon
+import au.com.shiftyjelly.pocketcasts.models.type.SmartRules
+import au.com.shiftyjelly.pocketcasts.repositories.playlist.ManualPlaylistPreview
+import au.com.shiftyjelly.pocketcasts.repositories.playlist.Playlist
+import au.com.shiftyjelly.pocketcasts.repositories.playlist.Playlist.Type
 import au.com.shiftyjelly.pocketcasts.repositories.playlist.PlaylistPreview
+import au.com.shiftyjelly.pocketcasts.repositories.playlist.SmartPlaylistPreview
 import au.com.shiftyjelly.pocketcasts.ui.theme.Theme
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
@@ -204,11 +210,13 @@ internal fun PlaylistPreviewRow(
                 Spacer(
                     modifier = Modifier.width(16.dp),
                 )
-                Column {
+                Column(
+                    modifier = Modifier.weight(1f),
+                ) {
                     TextH40(
                         text = playlist.title,
                     )
-                    if (playlist.type == PlaylistPreview.Type.Smart) {
+                    if (playlist.type == Type.Smart) {
                         TextP50(
                             text = stringResource(LR.string.smart_playlist),
                             color = MaterialTheme.theme.colors.primaryText02,
@@ -217,9 +225,6 @@ internal fun PlaylistPreviewRow(
                 }
                 Spacer(
                     modifier = Modifier.width(16.dp),
-                )
-                Spacer(
-                    modifier = Modifier.weight(1f),
                 )
                 TextP50(
                     text = "${playlist.episodeCount}",
@@ -265,12 +270,14 @@ private fun PlaylistPreviewRowPreview(
     AppThemeWithBackground(themeType) {
         Column {
             PlaylistPreviewRow(
-                playlist = PlaylistPreview(
+                playlist = SmartPlaylistPreview(
                     uuid = "",
                     title = "New Releases",
                     episodeCount = 0,
                     artworkPodcastUuids = emptyList(),
-                    type = PlaylistPreview.Type.Smart,
+                    settings = Playlist.Settings.ForPreview,
+                    smartRules = SmartRules.Default,
+                    icon = PlaylistIcon(0),
                 ),
                 showTooltip = false,
                 showDivider = true,
@@ -280,12 +287,13 @@ private fun PlaylistPreviewRowPreview(
                 modifier = Modifier.fillMaxWidth(),
             )
             PlaylistPreviewRow(
-                playlist = PlaylistPreview(
+                playlist = ManualPlaylistPreview(
                     uuid = "",
                     title = "In progress",
                     episodeCount = 1,
                     artworkPodcastUuids = List(1) { "podcast-uuid-$it" },
-                    type = PlaylistPreview.Type.Manual,
+                    settings = Playlist.Settings.ForPreview,
+                    icon = PlaylistIcon(0),
                 ),
                 showTooltip = false,
                 showDivider = true,
@@ -295,12 +303,14 @@ private fun PlaylistPreviewRowPreview(
                 modifier = Modifier.fillMaxWidth(),
             )
             PlaylistPreviewRow(
-                playlist = PlaylistPreview(
+                playlist = SmartPlaylistPreview(
                     uuid = "",
                     title = "Starred",
                     episodeCount = 328,
                     artworkPodcastUuids = List(4) { "podcast-uuid-$it" },
-                    type = PlaylistPreview.Type.Smart,
+                    settings = Playlist.Settings.ForPreview,
+                    smartRules = SmartRules.Default,
+                    icon = PlaylistIcon(0),
                 ),
                 showTooltip = false,
                 showDivider = false,

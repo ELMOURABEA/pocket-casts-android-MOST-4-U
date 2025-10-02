@@ -3,6 +3,7 @@ package au.com.shiftyjelly.pocketcasts.models.db.dao
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy.Companion.IGNORE
 import androidx.room.OnConflictStrategy.Companion.REPLACE
 import androidx.room.Query
 import androidx.room.Transaction
@@ -294,6 +295,9 @@ abstract class PodcastDao {
     @Insert(onConflict = REPLACE)
     abstract suspend fun insertSuspend(podcast: Podcast): Long
 
+    @Insert(onConflict = IGNORE)
+    abstract suspend fun insertAllOrIgnore(podcasts: Collection<Podcast>)
+
     fun insertRxSingle(podcast: Podcast): Single<Podcast> {
         return Single.fromCallable {
             insertBlocking(podcast)
@@ -317,7 +321,7 @@ abstract class PodcastDao {
     abstract fun countSubscribedRxSingle(): Single<Int>
 
     @Query("SELECT COUNT(*) FROM podcasts WHERE subscribed = 1")
-    abstract fun countSubscribedRxFlowable(): Flowable<Int>
+    abstract fun countSubscribedFlow(): Flow<Int>
 
     @Query("SELECT COUNT(*) FROM podcasts WHERE subscribed = 1 AND show_notifications = 1")
     abstract fun countNotificationsOnBlocking(): Int
@@ -434,6 +438,16 @@ abstract class PodcastDao {
 
     @Query("UPDATE podcasts SET auto_download_status = :autoDownloadStatus WHERE uuid = :uuid")
     abstract fun updateAutoDownloadStatusBlocking(autoDownloadStatus: Int, uuid: String)
+
+    @Query("UPDATE podcasts SET auto_download_status = :autoDownloadStatus WHERE uuid IN (:uuids)")
+    protected abstract suspend fun updateAutoDownloadStatusUnsafe(uuids: Collection<String>, autoDownloadStatus: Int)
+
+    @Transaction
+    open suspend fun updateAutoDownloadStatus(uuids: Collection<String>, autoDownloadStatus: Int) {
+        uuids.chunked(AppDatabase.SQLITE_BIND_ARG_LIMIT - 1).forEach { chunk ->
+            updateAutoDownloadStatusUnsafe(chunk, autoDownloadStatus)
+        }
+    }
 
     @Query("SELECT * FROM podcasts WHERE sync_status = " + Podcast.SYNC_STATUS_NOT_SYNCED + " AND uuid IS NOT NULL")
     abstract fun findNotSyncedBlocking(): List<Podcast>

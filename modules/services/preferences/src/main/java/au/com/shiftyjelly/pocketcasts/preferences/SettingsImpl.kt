@@ -13,8 +13,8 @@ import au.com.shiftyjelly.pocketcasts.models.to.PlaybackEffects
 import au.com.shiftyjelly.pocketcasts.models.to.PodcastGrouping
 import au.com.shiftyjelly.pocketcasts.models.to.RefreshState
 import au.com.shiftyjelly.pocketcasts.models.type.AutoDownloadLimitSetting
+import au.com.shiftyjelly.pocketcasts.models.type.Membership
 import au.com.shiftyjelly.pocketcasts.models.type.PodcastsSortType
-import au.com.shiftyjelly.pocketcasts.models.type.Subscription
 import au.com.shiftyjelly.pocketcasts.models.type.TrimMode
 import au.com.shiftyjelly.pocketcasts.preferences.Settings.Companion.DEFAULT_MAX_AUTO_ADD_LIMIT
 import au.com.shiftyjelly.pocketcasts.preferences.Settings.Companion.GLOBAL_AUTO_DOWNLOAD_NONE
@@ -1044,10 +1044,6 @@ class SettingsImpl @Inject constructor(
         return getRemoteConfigLong(FirebaseConfig.REFRESH_PODCASTS_BATCH_SIZE)
     }
 
-    override fun getExoPlayerCacheSizeInMB(): Long {
-        return firebaseRemoteConfig.getLong(FirebaseConfig.EXOPLAYER_CACHE_SIZE_IN_MB)
-    }
-
     override fun getExoPlayerCacheEntirePlayingEpisodeSizeInMB(): Long {
         return firebaseRemoteConfig.getLong(FirebaseConfig.EXOPLAYER_CACHE_ENTIRE_PLAYING_EPISODE_SIZE_IN_MB)
     }
@@ -1075,24 +1071,26 @@ class SettingsImpl @Inject constructor(
         sharedPrefs = sharedPreferences,
     )
 
-    private val subscriptionAdapter = moshi.adapter(Subscription::class.java)
+    private val membershipAdapter = moshi.adapter(Membership::class.java)
 
-    override val cachedSubscription = UserSetting.PrefFromString<Subscription?>(
-        sharedPrefKey = "user_subscription",
-        defaultValue = null,
+    override val cachedMembership = UserSetting.PrefFromString(
+        sharedPrefKey = "user_membership",
+        defaultValue = Membership.Empty,
         sharedPrefs = privatePreferences,
         fromString = { value ->
             value
                 .takeIf(String::isNotEmpty)
                 ?.let(::decrypt)
-                ?.let { decryptedValue -> runCatching { subscriptionAdapter.fromJson(decryptedValue) }.getOrNull() }
+                ?.let { decryptedValue -> runCatching { membershipAdapter.fromJson(decryptedValue) } }
+                ?.getOrNull()
+                ?: Membership.Empty
         },
-        toString = { value ->
-            value
-                ?.let(subscriptionAdapter::toJson)
-                ?.let(::encrypt)
-                .orEmpty()
-        },
+        toString = { value -> encrypt(membershipAdapter.toJson(value)) },
+    )
+
+    override val cachedSubscription = DelegatedSetting(
+        delegate = cachedMembership,
+        mapper = { membership -> membership.subscription },
     )
 
     override val headphoneControlsNextAction = HeadphoneActionUserSetting(
@@ -1312,12 +1310,6 @@ class SettingsImpl @Inject constructor(
     override val collectAnalytics = UserSetting.BoolPref(
         sharedPrefKey = "SendUsageStatsKey",
         defaultValue = BuildConfig.DATA_COLLECTION_DEFAULT_VALUE ?: true,
-        sharedPrefs = sharedPreferences,
-    )
-
-    override val collectAnalyticsThirdParty = UserSetting.BoolPref(
-        sharedPrefKey = "SendUsageStatsThirdPartyKey",
-        defaultValue = false, // Ask for consent before sending third party analytics
         sharedPrefs = sharedPreferences,
     )
 
@@ -1580,12 +1572,6 @@ class SettingsImpl @Inject constructor(
     override val suggestedFoldersFollowedHash = UserSetting.StringPref(
         sharedPrefKey = "suggested_folders_followed_hash",
         defaultValue = "",
-        sharedPrefs = sharedPreferences,
-    )
-
-    override val isTrackingConsentRequired = UserSetting.BoolPref(
-        sharedPrefKey = "tracking_consent_required",
-        defaultValue = true,
         sharedPrefs = sharedPreferences,
     )
 

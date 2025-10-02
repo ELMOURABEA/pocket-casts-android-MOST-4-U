@@ -9,6 +9,7 @@ import au.com.shiftyjelly.pocketcasts.models.to.PlaybackEffects
 import au.com.shiftyjelly.pocketcasts.models.to.PodcastGrouping
 import au.com.shiftyjelly.pocketcasts.models.to.RefreshState
 import au.com.shiftyjelly.pocketcasts.models.type.AutoDownloadLimitSetting
+import au.com.shiftyjelly.pocketcasts.models.type.Membership
 import au.com.shiftyjelly.pocketcasts.models.type.PodcastsSortType
 import au.com.shiftyjelly.pocketcasts.models.type.Subscription
 import au.com.shiftyjelly.pocketcasts.preferences.model.AppIconSetting
@@ -45,6 +46,7 @@ interface Settings {
         const val SERVER_SHORT_URL = BuildConfig.SERVER_SHORT_URL
         const val SERVER_LIST_URL = BuildConfig.SERVER_LIST_URL
         const val SERVER_LIST_HOST = BuildConfig.SERVER_LIST_HOST
+        const val SEARCH_API_URL = BuildConfig.SEARCH_API_URL
         const val WP_COM_API_URL = "https://public-api.wordpress.com"
 
         const val SHARING_SERVER_SECRET = BuildConfig.SHARING_SERVER_SECRET
@@ -428,7 +430,6 @@ interface Settings {
     fun getSlumberStudiosPromoCode(): String
     fun getSleepTimerDeviceShakeThreshold(): Long
     fun getRefreshPodcastsBatchSize(): Long
-    fun getExoPlayerCacheSizeInMB(): Long
     fun getExoPlayerCacheEntirePlayingEpisodeSizeInMB(): Long
     fun getPlaybackEpisodePositionChangedOnSyncThresholdSecs(): Long
 
@@ -445,7 +446,8 @@ interface Settings {
     val cloudAutoUpload: UserSetting<Boolean>
     val cloudAutoDownload: UserSetting<Boolean>
     val cloudDownloadOnlyOnWifi: UserSetting<Boolean>
-    val cachedSubscription: UserSetting<Subscription?>
+    val cachedMembership: UserSetting<Membership>
+    val cachedSubscription: ReadSetting<Subscription?>
 
     val upgradeProfileClosed: UserSetting<Boolean>
     fun getUpgradeClosedAddFile(): Boolean
@@ -488,7 +490,6 @@ interface Settings {
     // Only the AnalyticsTracker object should update SendUsageState directly. Everything else
     // should update this setting through the AnalyticsTracker.
     val collectAnalytics: UserSetting<Boolean>
-    val collectAnalyticsThirdParty: UserSetting<Boolean>
     val sendCrashReports: UserSetting<Boolean>
     val linkCrashReportsToUser: UserSetting<Boolean>
 
@@ -580,8 +581,6 @@ interface Settings {
     val suggestedFoldersDismissTimestamp: UserSetting<Instant?>
     val suggestedFoldersDismissCount: UserSetting<Int>
     val suggestedFoldersFollowedHash: UserSetting<String>
-
-    val isTrackingConsentRequired: UserSetting<Boolean>
 
     val isFreeAccountProfileBannerDismissed: UserSetting<Boolean>
     val isFreeAccountFiltersBannerDismissed: UserSetting<Boolean>

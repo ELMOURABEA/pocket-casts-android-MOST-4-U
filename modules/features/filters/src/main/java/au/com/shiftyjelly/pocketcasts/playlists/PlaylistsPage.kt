@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
@@ -38,7 +37,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
@@ -56,10 +54,16 @@ import au.com.shiftyjelly.pocketcasts.compose.components.NoContentBanner
 import au.com.shiftyjelly.pocketcasts.compose.preview.ThemePreviewParameterProvider
 import au.com.shiftyjelly.pocketcasts.compose.reorderable.rememberReorderableLazyListDataSource
 import au.com.shiftyjelly.pocketcasts.compose.theme
+import au.com.shiftyjelly.pocketcasts.models.to.PlaylistIcon
+import au.com.shiftyjelly.pocketcasts.models.type.SmartRules
 import au.com.shiftyjelly.pocketcasts.playlists.PlaylistsViewModel.PlaylistsState
 import au.com.shiftyjelly.pocketcasts.playlists.PlaylistsViewModel.UiState
 import au.com.shiftyjelly.pocketcasts.playlists.component.PlaylistPreviewRow
+import au.com.shiftyjelly.pocketcasts.repositories.playlist.ManualPlaylistPreview
+import au.com.shiftyjelly.pocketcasts.repositories.playlist.Playlist
+import au.com.shiftyjelly.pocketcasts.repositories.playlist.Playlist.Type
 import au.com.shiftyjelly.pocketcasts.repositories.playlist.PlaylistPreview
+import au.com.shiftyjelly.pocketcasts.repositories.playlist.SmartPlaylistPreview
 import au.com.shiftyjelly.pocketcasts.ui.theme.Theme.ThemeType
 import sh.calvin.reorderable.ReorderableItem
 import au.com.shiftyjelly.pocketcasts.images.R as IR
@@ -412,19 +416,25 @@ private fun PlaylistPagePreview(
         PlaylistsPage(
             uiState = UiState(
                 playlists = PlaylistsState.Loaded(
-                    value = List(3) { index ->
-                        PlaylistPreview(
-                            uuid = "uuid-$index",
-                            title = "Playlist $index",
-                            episodeCount = index,
+                    value = listOf(
+                        ManualPlaylistPreview(
+                            uuid = "uuid-0",
+                            title = "Playlist 0",
+                            episodeCount = 0,
                             artworkPodcastUuids = emptyList(),
-                            type = if (index % 2 == 0) {
-                                PlaylistPreview.Type.Smart
-                            } else {
-                                PlaylistPreview.Type.Manual
-                            },
-                        )
-                    },
+                            settings = Playlist.Settings.ForPreview,
+                            icon = PlaylistIcon(0),
+                        ),
+                        SmartPlaylistPreview(
+                            uuid = "uuid-1",
+                            title = "Playlist 1",
+                            episodeCount = 253,
+                            artworkPodcastUuids = emptyList(),
+                            settings = Playlist.Settings.ForPreview,
+                            smartRules = SmartRules.Default,
+                            icon = PlaylistIcon(0),
+                        ),
+                    ),
                 ),
                 showOnboarding = false,
                 showFreeAccountBanner = true,

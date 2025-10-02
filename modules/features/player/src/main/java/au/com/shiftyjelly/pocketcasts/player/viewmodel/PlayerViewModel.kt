@@ -541,7 +541,7 @@ class PlayerViewModel @Inject constructor(
         if (episode.episodeStatus != EpisodeStatusEnum.NOT_DOWNLOADED) {
             onDeleteStart.invoke()
             launch {
-                episodeManager.deleteEpisodeFile(episode, playbackManager, disableAutoDownload = false, removeFromUpNext = episode.episodeStatus == EpisodeStatusEnum.DOWNLOADED)
+                episodeManager.deleteEpisodeFile(episode, playbackManager, disableAutoDownload = false)
             }
         } else {
             onDownloadStart.invoke()
@@ -761,23 +761,11 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun trackAdImpression(ad: BlazeAd) {
-        analyticsTracker.track(
-            AnalyticsEvent.BANNER_AD_IMPRESSION,
-            mapOf(
-                "promotion" to "player",
-                "id" to ad.id,
-            ),
-        )
+        analyticsTracker.trackBannerAdImpression(id = ad.id, location = ad.location.value)
     }
 
     fun trackAdTapped(ad: BlazeAd) {
-        analyticsTracker.track(
-            AnalyticsEvent.BANNER_AD_TAPPED,
-            mapOf(
-                "promotion" to "player",
-                "id" to ad.id,
-            ),
-        )
+        analyticsTracker.trackBannerAdTapped(id = ad.id, location = ad.location.value)
     }
 
     sealed interface NavigationState {

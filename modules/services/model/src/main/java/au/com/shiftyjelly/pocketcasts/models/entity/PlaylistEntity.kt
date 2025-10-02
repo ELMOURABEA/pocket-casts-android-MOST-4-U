@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import au.com.shiftyjelly.pocketcasts.models.to.PlaylistIcon
 import au.com.shiftyjelly.pocketcasts.models.type.PlaylistEpisodeSortType
 import au.com.shiftyjelly.pocketcasts.utils.extensions.splitIgnoreEmpty
 import java.io.Serializable
@@ -43,6 +44,8 @@ data class PlaylistEntity(
     @ColumnInfo(name = "filterDuration") var filterDuration: Boolean = false,
     @ColumnInfo(name = "longerThan") var longerThan: Int = 20,
     @ColumnInfo(name = "shorterThan") var shorterThan: Int = 40,
+    // Manual playlist configuration
+    @ColumnInfo(name = "showArchivedEpisodes") var showArchivedEpisodes: Boolean = false,
 ) : Serializable {
     companion object {
         const val AUDIO_VIDEO_FILTER_ALL = 0
@@ -59,6 +62,7 @@ data class PlaylistEntity(
         const val LAST_2_WEEKS = 14 * 24
         const val LAST_MONTH = 31 * 24
     }
+    val icon get() = PlaylistIcon(iconId)
 
     val isAudioOnly: Boolean
         get() = audioVideo == AUDIO_VIDEO_FILTER_AUDIO_ONLY

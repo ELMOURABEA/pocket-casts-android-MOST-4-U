@@ -1,7 +1,5 @@
 package au.com.shiftyjelly.pocketcasts.repositories.podcast
 
-import android.content.Context
-import au.com.shiftyjelly.pocketcasts.analytics.SourceView
 import au.com.shiftyjelly.pocketcasts.models.db.AppDatabase
 import au.com.shiftyjelly.pocketcasts.models.entity.PlaylistEntity
 import au.com.shiftyjelly.pocketcasts.models.entity.PodcastEpisode
@@ -10,14 +8,11 @@ import au.com.shiftyjelly.pocketcasts.models.type.EpisodeStatusEnum
 import au.com.shiftyjelly.pocketcasts.models.type.PlaylistEpisodeSortType
 import au.com.shiftyjelly.pocketcasts.preferences.Settings
 import au.com.shiftyjelly.pocketcasts.repositories.di.ApplicationScope
-import au.com.shiftyjelly.pocketcasts.repositories.download.DownloadHelper
-import au.com.shiftyjelly.pocketcasts.repositories.download.DownloadManager
 import au.com.shiftyjelly.pocketcasts.repositories.notification.NotificationManager
 import au.com.shiftyjelly.pocketcasts.repositories.notification.OnboardingNotificationType
 import au.com.shiftyjelly.pocketcasts.repositories.playback.PlaybackManager
-import au.com.shiftyjelly.pocketcasts.repositories.playlist.DefaultPlaylistsInitializater
+import au.com.shiftyjelly.pocketcasts.repositories.playlist.DefaultPlaylistsInitializer
 import au.com.shiftyjelly.pocketcasts.repositories.sync.SyncManager
-import dagger.hilt.android.qualifiers.ApplicationContext
 import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.Maybe
@@ -31,13 +26,11 @@ import timber.log.Timber
 
 class SmartPlaylistManagerImpl @Inject constructor(
     private val settings: Settings,
-    private val downloadManager: DownloadManager,
     private val playlistUpdateAnalytics: PlaylistUpdateAnalytics,
     private val syncManager: SyncManager,
     private val notificationManager: NotificationManager,
-    @ApplicationContext private val context: Context,
     appDatabase: AppDatabase,
-    private val playlistsInitializater: DefaultPlaylistsInitializater,
+    private val playlistsInitializer: DefaultPlaylistsInitializer,
     @ApplicationScope private val scope: CoroutineScope,
 ) : SmartPlaylistManager {
 
@@ -107,12 +100,13 @@ class SmartPlaylistManagerImpl @Inject constructor(
 
     private fun getPlaylistOrderByString(playlist: PlaylistEntity): String? = when (val sortType = playlist.sortType) {
         PlaylistEpisodeSortType.NewestToOldest,
+        PlaylistEpisodeSortType.DragAndDrop,
         PlaylistEpisodeSortType.OldestToNewest,
         -> {
             "published_date " +
-                (if (sortType == PlaylistEpisodeSortType.NewestToOldest) "DESC" else "ASC") +
+                (if (sortType == PlaylistEpisodeSortType.NewestToOldest || sortType == PlaylistEpisodeSortType.DragAndDrop) "DESC" else "ASC") +
                 ", added_date " +
-                if (sortType == PlaylistEpisodeSortType.NewestToOldest) "DESC" else "ASC"
+                if (sortType == PlaylistEpisodeSortType.NewestToOldest || sortType == PlaylistEpisodeSortType.DragAndDrop) "DESC" else "ASC"
         }
 
         PlaylistEpisodeSortType.ShortestToLongest,
@@ -162,10 +156,6 @@ class SmartPlaylistManagerImpl @Inject constructor(
         playlist.autoDownload = autoDownloadEnabled
     }
 
-    override fun updateAutoDownloadStatusRxCompletable(playlist: PlaylistEntity, autoDownloadEnabled: Boolean): Completable {
-        return Completable.fromAction { updateAutoDownloadStatus(playlist, autoDownloadEnabled) }
-    }
-
     override fun createPlaylistBlocking(name: String, iconId: Int, draft: Boolean): PlaylistEntity {
         val playlist = PlaylistEntity(
             uuid = UUID.randomUUID().toString(),
@@ -204,7 +194,7 @@ class SmartPlaylistManagerImpl @Inject constructor(
 
     override suspend fun resetDb() {
         playlistDao.deleteAll()
-        playlistsInitializater.initialize(force = true)
+        playlistsInitializer.initialize(force = true)
     }
 
     override suspend fun deleteSynced(playlist: PlaylistEntity) {
@@ -227,23 +217,6 @@ class SmartPlaylistManagerImpl @Inject constructor(
         val playlist = findByIdBlocking(id) ?: return 0
         val where = buildPlaylistWhere(playlist, playbackManager)
         return episodeManager.countEpisodesWhereBlocking(where)
-    }
-
-    override fun checkForEpisodesToDownloadBlocking(episodeManager: EpisodeManager, playbackManager: PlaybackManager) {
-        val allPlaylists = findAllBlocking()
-        if (allPlaylists.isEmpty()) return
-
-        for (playlist in allPlaylists) {
-            if (!playlist.autoDownload) continue
-
-            findEpisodesBlocking(playlist, episodeManager, playbackManager).take(playlist.autodownloadLimit).forEach { episode ->
-                if (episode.isQueued || episode.isDownloaded || episode.isDownloading || episode.isExemptFromAutoDownload) {
-                    return@forEach
-                }
-
-                DownloadHelper.addAutoDownloadedEpisodeToQueue(episode, "playlist " + playlist.title, downloadManager, episodeManager, source = SourceView.PODCAST_LIST)
-            }
-        }
     }
 
     override suspend fun removePodcastFromPlaylists(podcastUuid: String) {
